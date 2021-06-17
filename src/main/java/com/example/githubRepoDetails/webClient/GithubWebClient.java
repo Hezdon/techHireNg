@@ -31,11 +31,14 @@ public class GithubWebClient {
     @Value("${github.api.baseurl}")
     private String githubBaseUrl;
 
+    @Value("${commit.limit}")
+    private int commitLimit;
+
     public SearchRepoResp getRepoList(String param) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String url = githubBaseUrl+"/search/repositories?q={param}";
+        String url = githubBaseUrl+"/search/repositories?q={param}&per_page="+commitLimit;
         SearchRepoResp searchRepoResponses = restTemplate.getForObject(url, SearchRepoResp.class, param);
 
 
@@ -45,7 +48,7 @@ public class GithubWebClient {
     public List<CommitList> getCommitList(String owner, String repo) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String url = githubBaseUrl+"/repos/{owner}/{repo}/commits";
+        String url = githubBaseUrl+"/repos/{owner}/{repo}/commits?per_page="+commitLimit;
 
         Map<String, String> vars = new HashMap<>();
         vars.put("owner", owner);
@@ -60,7 +63,19 @@ public class GithubWebClient {
     public List<Contributor> getContributorsList(String owner, String repo) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String url = githubBaseUrl+"/repos/{owner}/{repo}/contributors";
+        String url = githubBaseUrl+"/repos/{owner}/{repo}/contributors?per_page=100";
+
+        Map<String, String> vars = new HashMap<>();
+        vars.put("owner", owner);
+        vars.put("repo", repo);
+        Contributor[] contributorsList = restTemplate.getForObject(url, Contributor[].class, vars);
+
+        return Arrays.asList(contributorsList);
+    }
+    public List<Contributor> getCollaborators(String owner, String repo) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String url = githubBaseUrl+"/repos/{owner}/{repo}/collaborators";
 
         Map<String, String> vars = new HashMap<>();
         vars.put("owner", owner);

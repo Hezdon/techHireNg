@@ -2,6 +2,7 @@ package com.example.githubRepoDetails.Service;
 
 import com.example.githubRepoDetails.dto.CommitList;
 import com.example.githubRepoDetails.dto.CommitProjectionDetails;
+import com.example.githubRepoDetails.dto.CommitsContributorsAndProjection;
 import com.example.githubRepoDetails.dto.Contributor;
 import com.example.githubRepoDetails.webClient.GithubWebClient;
 import org.apache.catalina.User;
@@ -27,10 +28,8 @@ public class GithubRepoService {
         return commitList;
     }
 
-    public List<Contributor> usersCommits(String owner, String repo){
+    public List<Contributor> usersCommits(String owner, String repo, List<CommitList> sortedCommitList){
         List<Contributor> contributors = githubWebClient.getContributorsList(owner, repo);
-        List<CommitList> sortedCommitList = getCommitWithLimit(owner, repo);
-
         contributors.forEach(contributor -> {
             long userCommitCount = sortedCommitList.stream().filter(c -> c.getCommitter().getLogin().equals(contributor.getLogin())).count();
             contributor.setNumberCommit(userCommitCount);
@@ -38,9 +37,7 @@ public class GithubRepoService {
         return contributors;
     }
 
-    public CommitProjectionDetails commitsProjection(String owner, String repo){
-        List<CommitList> sortedCommitList = getCommitWithLimit(owner, repo);
-
+    public CommitProjectionDetails commitsProjection(List<CommitList> sortedCommitList){
         CommitProjectionDetails commitProjectionDetails = new CommitProjectionDetails();
         commitProjectionDetails.setMaxDate(sortedCommitList.get(0).getCommit().getCommitter().getDate());
         commitProjectionDetails.setMinDate(sortedCommitList.get(sortedCommitList.size()-1).getCommit().getCommitter().getDate());
@@ -49,7 +46,6 @@ public class GithubRepoService {
         long differenceInTime = commitProjectionDetails.getMaxDate().getTime() - commitProjectionDetails.getMinDate().getTime();
         long differenceInDays = (differenceInTime / (1000 * 60 * 60 * 24)) % 365;
         commitProjectionDetails.setDays(differenceInDays);
-
         return commitProjectionDetails;
     }
 
@@ -58,4 +54,18 @@ public class GithubRepoService {
         List<CommitList> sortedCommitList = commitList.stream().filter(c -> null != c.getCommitter()).limit(commitLimit).collect(Collectors.toList());
         return sortedCommitList;
     }
+
+    public CommitsContributorsAndProjection commitsContributorsAndProjection(String owner, String repo){
+        List<CommitList> sortedCommitList = getCommitWithLimit(owner, repo);
+        CommitProjectionDetails commitProjectionDetails = commitsProjection(sortedCommitList);
+        List<Contributor> contributors = usersCommits(owner, repo, sortedCommitList);
+
+        CommitsContributorsAndProjection commitsContributorsAndProjection = new CommitsContributorsAndProjection();
+        commitsContributorsAndProjection.setCommitProjectionDetails(commitProjectionDetails);
+        commitsContributorsAndProjection.setContributors(contributors);
+
+        return commitsContributorsAndProjection;
+    }
+
+
 }

@@ -45,19 +45,11 @@ public class RepositoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/repo/committers/commits/{owner}/{repo}")
-    public ResponseEntity<?> repoContributorsCommitController(@PathVariable String owner, @PathVariable String repo){
 
-        List<Contributor> response = githubRepoService.usersCommits(owner, repo);
+    @GetMapping("/repo/contributors/commits/{owner}/{repo}")
+    public ResponseEntity<?> repoCommitContributorsAndProjectionController(@PathVariable String owner, @PathVariable String repo){
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @GetMapping("/repo/projection/commits/{owner}/{repo}")
-    public ResponseEntity<?> repoCommitProjectionController(@PathVariable String owner, @PathVariable String repo){
-
-        CommitProjectionDetails response = githubRepoService.commitsProjection(owner, repo);
-
+        CommitsContributorsAndProjection response = githubRepoService.commitsContributorsAndProjection( owner, repo);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
